@@ -1,0 +1,4 @@
+Koolshare Asuswrt-Merlin CloudXNS Changelog
+===========================================
+0.0.1 ( 2017-11-09 23:00 )
+  - Add       盲改第一版（因为我没有CloudXNS）
