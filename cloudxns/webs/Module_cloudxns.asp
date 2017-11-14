@@ -150,19 +150,16 @@
             });
         }
         function version_show(){
-            $("#cloudxns_version_status").html("<i>当前版本：" + db_cloudxns_['cloudxns_version']);
             $.ajax({
                 url: 'https://koolshare.ngrok.wang/cloudxns/config.json.js',
                 type: 'GET',
                 dataType: 'jsonp',
                 success: function(res) {
-                    var txt = $(res.responseText).text();
-                    if(typeof(txt) != "undefined" && txt.length > 0) {
-                        //console.log(txt);
-                        var obj = $.parseJSON(txt.replace("'", "\""));
-                        $("#cloudxns_version_status").html("<i>当前版本：" + obj.version+ "</i>");
-                        if(obj.version != db_cloudxns_["cloudxns_version"]) {
-                            $("#cloudxns_version_status").html("<font color=\"#66FF66\">有新版本：" + res.version + "</font>");
+                    if(typeof(res["version"]) != "undefined" && res["version"].length > 0) {
+                        if(res["version"] == db_cloudxns_["cloudxns_version"]){
+                            $("#cloudxns_version_status").html("<i>插件版本：" + res["version"]);
+                        }else if(res["version"] > db_cloudxns_["cloudxns_version"]) {
+                            $("#cloudxns_version_status").html("<font color=\"#66FF66\">有新版本：</font>" + res.version);
                         }
                     }
                 }
