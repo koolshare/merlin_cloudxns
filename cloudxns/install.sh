@@ -1,7 +1,7 @@
 #!/bin/sh
 source /koolshare/scripts/base.sh
 MODULE=cloudxns
-VERSION="0.0.2"
+VERSION="0.0.4"
 cd /tmp
 if [[ ! -x /koolshare/bin/base64_encode ]]; then
     cp -f /tmp/serverchan/bin/base64_encode /koolshare/bin/base64_encode
@@ -10,7 +10,8 @@ if [[ ! -x /koolshare/bin/base64_encode ]]; then
 fi
 cp -rf /tmp/cloudxns/scripts/* /koolshare/scripts/
 cp -rf /tmp/cloudxns/webs/* /koolshare/webs/
-cp -rf /tmp/cloudxns/res/* /koolshare/res/
+cp -rf /tmp/cloudxns/res/icon-cloudxns.png /koolshare/res/icon-cloudxns.png
+[ ! -d /koolshare/res/layer ] && mkdir -p /koolshare/res/layer/ && cp -rf /tmp/cloudxns/res/layer/* /koolshare/res/layer/
 
 chmod a+x /koolshare/scripts/cloudxns_config.sh
 chmod a+x /koolshare/scripts/cloudxns_update.sh

@@ -14,6 +14,27 @@
         <link rel="stylesheet" type="text/css" href="ParentalControl.css">
         <link rel="stylesheet" type="text/css" href="css/icon.css">
         <link rel="stylesheet" type="text/css" href="css/element.css">
+        <link rel="stylesheet" type="text/css" href="/res/layer/theme/default/layer.css">
+        <style>
+            .kp_btn {
+                border: 1px solid #222;
+                background: linear-gradient(to bottom, #003333  0%, #000000 100%); /* W3C */
+                font-size:10pt;
+                color: #fff;
+                padding: 5px 5px;
+                border-radius: 5px 5px 5px 5px;
+                width:14%;
+            }
+            .kp_btn:hover {
+                border: 1px solid #222;
+                background: linear-gradient(to bottom, #27c9c9  0%, #279fd9 100%); /* W3C */
+                font-size:10pt;
+                color: #fff;
+                padding: 5px 5px;
+                border-radius: 5px 5px 5px 5px;
+                width:14%;
+            }
+        </style>
         <script type="text/javascript" src="/state.js"></script>
         <script type="text/javascript" src="/popup.js"></script>
         <script type="text/javascript" src="/help.js"></script>
@@ -149,6 +170,51 @@
                 }
             });
         }
+        function pop_changelog() {
+            require(['/res/layer/layer.js'], function(layer) {
+                layer.open({
+                    type: 2,
+                    shade: .7,
+                    //scrollbar: 0,
+                    title: 'CloudXNS DDNS - 更新日志',
+                    area: ['750px', '500px'],
+                    fixed: true, //不固定
+                    maxmin: true,
+                    shadeClose: 1,
+                    id: 'LAY_layuipro1',
+                    btnAlign: 'c',
+                    content: 'https://koolshare.ngrok.wang/cloudxns/Changelog.txt',
+                });
+            });
+        }
+        function pop_help() {
+            require(['/res/layer/layer.js'], function(layer) {
+                layer.open({
+                    type: 1,
+                    title: false,
+                    closeBtn: false,
+                    area: '600px;',
+                    //offset: ['355px', '443px'],
+                    shade: 0.8,
+                    shadeClose: 1,
+                    scrollbar: false,
+                    id: 'LAY_layuipro',
+                    btn: ['关闭窗口'],
+                    btnAlign: 'c',
+                    moveType: 1,
+                    content: '<div style="padding: 50px; line-height: 22px; background-color: #393D49; color: #fff; font-weight: 300;">\
+                        <b>梅林固件 - CloudXNS DDNS - ' + db_cloudxns_["cloudxns_version"] + '</b><br><br>\
+                        使用CloudXNS DNS实现的ddns服务<br>\
+                        使用前需要将域名添加到CloudXNS中，并添加一条A记录，使用之后将自动更新IP<br>\
+                        点 <a style="color:#e7bd16" target="_blank" href="https://www.cloudxns.net/Support/detail/id/51.html"><u>这里</u></a> 查看官方说明以及如何获取API KEY<br>\
+                        使用本插件中有任何问题，可以前往<a style="color:#e7bd16" target="_blank" href="http://koolshare.cn/forum-98-1.html"><u>Koolshare论坛</u></a>反馈~<br><br>\
+                        刷新时间设置：<br>\
+                        ● 设置为 <span style="color:#e7bd16">0</span> 关闭刷新时间<br>\
+                        ● 分钟设置：<span style="color:#e7bd16">1-30</span> 每xx分钟检测刷新一次<br>\
+                        ● 小时设置：<span style="color:#e7bd16">1-12</span> 每xx小时检测刷新一次</div>'
+                });
+            });
+        }
         function version_show(){
             $.ajax({
                 url: 'https://koolshare.ngrok.wang/cloudxns/config.json.js',
@@ -211,7 +277,7 @@
                                                 <div class="formfontdesc" style="padding-top:5px;margin-top:0px;float: left;" id="cmdDesc">
                                                 <div>使用CloudXNS实现的ddns服务</div>
                                                 <ul style="padding-top:5px;margin-top:10px;float: left;">
-                                                <li>使用前需要将域名添加到CloudXNS中，并添加一条A记录，使用之后将自动更新ip</li>
+                                                <li>使用前需要将域名添加到CloudXNS中，并添加一条A记录，使用之后将自动更新IP</li>
                                                 <li>点 <a href="https://www.cloudxns.net/Support/detail/id/51.html" target="_blank"><i><u>这里</u></i></a> 查看官方说明以及如何获取API KEY</li>
                                                 </ul>
                                                 </div>
@@ -237,7 +303,8 @@
                                                                 </label>
                                                             </div>
                                                             <div id="cloudxns_version_status" style="padding-top:5px;margin-left:30px;margin-top:0px;float:left;"><i>当前版本：<% dbus_get_def("cloudxns_version", "未知"); %></i></div>
-                                                            <div id="cloudxns_changelog_show" style="padding-top:5px;margin-right:30px;margin-top:0px;float: right;"><a href="https://raw.githubusercontent.com/koolshare/merlin_cloudxns/master/Changelog.txt" target="_blank"><em><u>[ 更新日志 ]</u></em></a></div>
+                                                            <div id="cloudxns_changelog_show" style="padding-top:5px;margin-right:30px;margin-top:0px;float: right;"><a type="button" class="kp_btn" target="_blank" href="javascript:void(0);" onclick="pop_changelog();">更新日志</a></div>
+                                                            <div id="cloudxns_help_show" style="padding-top:5px;margin-right:10px;margin-top:0px;float: right;"><a type="button" class="kp_btn" target="_blank" href="javascript:void(0);" onclick="pop_help();">插件帮助</a></div>
                                                     </td>
                                                     </tr>
                                                 </table>
