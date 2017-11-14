@@ -8,10 +8,8 @@
 #################################################
 
 # ====================================变量定义====================================
-
 # 导入skipd数据
 eval `dbus export cloudxns`
-
 # 引用环境变量等
 source /koolshare/scripts/base.sh
 export PERP_BASE=/koolshare/perp
@@ -23,7 +21,9 @@ SECRET_KEY=${cloudxns_config_secret_key}
 DDNS="${cloudxns_config_domain}"
 CHECKURL="https://ip.ngrok.wang"
 #CONF END
-ntpclient -h ntp1.aliyun.com -i3 -l -s > /dev/null 2>&1
+[ "${cloudxns_config_ntp}" == "" ] && ntp_server="ntp1.aliyun.com" || ntp_server=${cloudxns_config_ntp}
+echo ${ntp_server}
+ntpclient -h ${ntp_server} -i3 -l -s > /dev/null 2>&1
 URL="http://www.cloudxns.net/api2/ddns"
 JSON="{\"domain\":\"$DDNS\"}"
 NOWTIME=$(env LANG=en_US.UTF-8 date +'%a %h %d %H:%M:%S %Y')
@@ -45,10 +45,19 @@ arIpAdress() {
 }
 #将执行脚本写入crontab定时运行
 add_cloudxns_cru(){
-    if [ -f /koolshare/scripts/cloudxns_update.sh ]; then
-        #确保有执行权限
-        chmod +x /koolshare/scripts/cloudxns_update.sh
-        cru a cloudxns "0 */${cloudxns_refresh_time} * * * /koolshare/scripts/cloudxns_update.sh restart"
+    if [ "$cloudxns_auto_start" == "1" ]; then
+        [ ! -L /koolshare/init.d/S99cloudxns.sh ] && ln -sf /koolshare/scripts/cloudxns_config.sh /koolshare/init.d/S99cloudxns.sh
+    fi
+    if [ "${cloudxns_refresh_time}" == "0" ]; then
+        stop_cloudxns
+    else
+        if [ "${cloudxns_refresh_time_check}" == "1" ]; then
+            cru a cloudxns "*/${cloudxns_refresh_time} * * * * /koolshare/scripts/cloudxns_update.sh restart"
+        elif [[ "${cloudxns_refresh_time_check}" == "2" ]]; then
+            cru a cloudxns "0 */${cloudxns_refresh_time} * * * /koolshare/scripts/cloudxns_update.sh restart"
+        else
+            stop_cloudxns
+        fi
     fi
 }
 
@@ -59,8 +68,10 @@ stop_cloudxns(){
     if [ ! -z "${cloudxnscru}" ]; then
         cru d cloudxns
     fi
+    if [ "$cloudxns_auto_start" == "0" ]; then
+        rm -f /koolshare/init.d/S99cloudxns.sh
+    fi
 }
-
 cloudxns_update(){
     if (echo ${CHECKURL} |grep -q "://");then
         IPREX='([0-9]{1,2}|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.([0-9]{1,2}|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.([0-9]{1,2}|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.([0-9]{1,2}|1[0-9][0-9]|2[0-4][0-9]|25[0-5])'
@@ -86,19 +97,21 @@ cloudxns_update(){
 
 case $ACTION in
 start)
-	#此处为开机自启动设计
-	if [ "$cloudxns_enable" == "1" ] && [ "$cloudxns_auto_start" == "1" ];then
-    add_cloudxns_cru
-    cloudxns_update
-	fi
-	;;
+    #此处为开机自启动设计
+    if [ "$cloudxns_enable" == "1" ];then
+        add_cloudxns_cru
+        cloudxns_update
+    fi
+    ;;
 stop | kill )
     stop_cloudxns
-	;;
+    ;;
 restart)
-    stop_cloudxns
-    add_cloudxns_cru
-    cloudxns_update
+    if [ "$cloudxns_enable" == "1" ];then
+        stop_cloudxns
+        add_cloudxns_cru
+        cloudxns_update
+    fi
     ;;
 *)
     echo "Usage: $0 (start|stop|restart|kill)"

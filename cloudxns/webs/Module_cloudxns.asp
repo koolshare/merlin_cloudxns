@@ -22,9 +22,6 @@
         <script type="text/javascript" src="/general.js"></script>
         <script type="text/javascript" src="/switcherplugin/jquery.iphone-switch.js"></script>
         <script type="text/javascript" src="/dbconf?p=cloudxns_&v=<% uptime(); %>"></script>
-        <script type="text/javascript" src="/res/rsa.js"></script>
-        <script type="text/javascript" src="/res/md5.js"></script>
-        <script type="text/javascript" src="/res/sha1.js"></script>
         <script type="text/javascript">
         var $G = function(id) {
             return document.getElementById(id);
@@ -58,40 +55,39 @@
             version_show();
             write_cloudxns_run_status();
             check_selected("cloudxns_auto_start", db_cloudxns_.cloudxns_auto_start);
-            check_selected("cloudxns_refresh_time", db_cloudxns_.cloudxns_refresh_time);
+            check_selected("cloudxns_refresh_time_check", db_cloudxns_.cloudxns_refresh_time_check);
         }
-
-        var kn = '00AC69F5CCC8BDE47CD3D371603748378C9CFAD2938A6B021E0E191013975AD683F5CBF9ADE8BD7D46B4D2EC2D78AF146F1DD2D50DC51446BB8880B8CE88D476694DFC60594393BEEFAA16F5DBCEBE22F89D640F5336E42F587DC4AFEDEFEAC36CF007009CCCE5C1ACB4FF06FBA69802A8085C2C54BADD0597FC83E6870F1E36FD';
-        var ke = '010001';
-
-        var rsa = new RSAKey();
-
-        rsa.setPublic(kn, ke);
-
         function onSubmitCtrl() {
             var _form = document.form;
-            if(trim(_form.cloudxns_config_api_key.value)=="" || trim(_form.cloudxns_config_secret_key.value)=="" || trim(_form.cloudxns_config_domain.value)==""){
+            if(trim(_form.cloudxns_config_api_key.value)=="" || trim(_form.cloudxns_config_secret_key.value)=="" || trim(_form.cloudxns_config_domain.value)=="" || trim(_form.cloudxns_refresh_time.value)==""){
                 alert("提交的表单不能为空!");
                 return false;
             }
+            if (!SubmitCheck()) { return false; }
             document.form.action_mode.value = ' Refresh ';
             document.form.SystemCmd.value = "cloudxns_config.sh";
             document.form.submit();
             showLoading(2);
             setTimeout("conf2obj()", 8000);
         }
-        function qj2bj(str){
-            var tmp = "";
-            for(var i=0;i<str.length;i++){
-                if(str.charCodeAt(i) >= 65281 && str.charCodeAt(i) <= 65374){
-                    tmp += String.fromCharCode(str.charCodeAt(i)-65248)
-                }else if(str.charCodeAt(i) == 12288){
-                    tmp += ' ';
-                }else{
-                    tmp += str[i];
+        function SubmitCheck() {
+            if(isNaN($G('cloudxns_refresh_time').value)){   //用于检查其参数是否是非数字值  
+                alert("刷新时间必须输入数字！");
+                return false;
+            } else {
+                if ($G('cloudxns_refresh_time_check').value == "1"){
+                    if(parseInt($G('cloudxns_refresh_time').value)<0 || parseInt($G('cloudxns_refresh_time').value)>30){   //注意‘或’的写法  
+                        alert("必须输入0-30之间的数字！");
+                        return false;
+                    }
+                } else if ($G('cloudxns_refresh_time_check').value == "2"){
+                    if(parseInt($G('cloudxns_refresh_time').value)<0 || parseInt($G('cloudxns_refresh_time').value)>12){   //注意‘或’的写法  
+                        alert("必须输入0-12之间的数字！");
+                        return false;
+                    }
                 }
             }
-            return tmp;
+            return true;
         }
         function conf2obj() {
             $.ajax({
@@ -112,7 +108,6 @@
                 }
             });
         }
-
         function buildswitch(){
             $("#switch").click(
             function(){
@@ -125,7 +120,6 @@
                 }
             });
         }
-
         function check_selected(obj, m) {
             var o = document.getElementById(obj);
             for (var c = 0; c < o.length; c++) {
@@ -135,7 +129,6 @@
                 }
             }
         }
-
         function write_cloudxns_run_status(){
             $.ajax({
                 type: "get",
@@ -149,18 +142,19 @@
                             $("#cloudxns_"+params[i]).val(db_cloudxns_[p + params[i]]);
                         }
                     }
-                    $("#cloudxns_run_state").html(Base64.decode(db_cloudxns_['cloudxns_run_status']));
-
+                    if(db_cloudxns_['cloudxns_run_status']){
+                        $("#cloudxns_run_state").html(Base64.decode(db_cloudxns_['cloudxns_run_status']));
+                    }
                     setTimeout("write_cloudxns_run_status()", 10000);
                 }
             });
         }
-
         function version_show(){
             $("#cloudxns_version_status").html("<i>当前版本：" + db_cloudxns_['cloudxns_version']);
             $.ajax({
                 url: 'https://koolshare.ngrok.wang/cloudxns/config.json.js',
                 type: 'GET',
+                dataType: 'jsonp',
                 success: function(res) {
                     var txt = $(res.responseText).text();
                     if(typeof(txt) != "undefined" && txt.length > 0) {
@@ -174,11 +168,6 @@
                 }
             });
         }
-
-        function done_validating(action) {
-            return true;
-        }
-
         function reload_Soft_Center() {
             location.href = "/Main_Soft_center.asp";
         }
@@ -296,9 +285,15 @@
 
                                                     <thead>
                                                     <tr>
-                                                        <td colspan="4">启动设置</td>
+                                                        <td colspan="4">软件设置</td>
                                                     </tr>
                                                     </thead>
+                                                    <tr>
+                                                        <th width="20%">时间同步服务器(校正推送时间)</th>
+                                                        <td>
+                                                            <input type="text" class="input_ss_table" id="cloudxns_config_ntp" name="cloudxns_config_ntp" maxlength="255" value="<% dbus_get_def("cloudxns_config_ntp", ""); %>" placeholder="" style="width:250px;"/>
+                                                        </td>
+                                                    </tr>
                                                     <tr>
                                                         <th width="35%">开机自启</th>
                                                         <td>
@@ -308,19 +303,15 @@
                                                             </select>
                                                         </td>
                                                     </tr>
-                                                    <thead>
-                                                    <tr>
-                                                        <td colspan="4">刷新设置</td>
-                                                    </tr>
-                                                    </thead>
                                                     <tr>
                                                         <th width="35%">刷新时间</th>
                                                         <td>
-                                                            <select id="cloudxns_refresh_time" name="cloudxns_refresh_time" class="input_option"  >
-                                                                <option value="1">1H</option>
-                                                                <option value="5">5H</option>
-                                                                <option value="10">10H</option>
-                                                            </select>
+                                                            每隔 <input type="text" id="cloudxns_refresh_time" name="cloudxns_refresh_time" class="input_3_table" maxlength="2" title="填写说明：&#13;选择分钟时，填写范围为：1-30&#13;选择小时时，填写范围为：1-12&#13;关闭填0" placeholder="填数字" value="<% dbus_get_def("cloudxns_refresh_time", ""); %>" style="width:40px;" />
+                                                            <select id="cloudxns_refresh_time_check" name="cloudxns_refresh_time_check" style="margin:0px 0px 0px 2px;" class="input_option" >
+                                                                <option value="1">分</option>
+                                                                <option value="2">小时</option>
+                                                            </select> 刷新
+                                                            <span style="padding-top:5px;margin-right:30px;margin-top:0px;float: right;">( 分钟范围：1-30，小时范围：1-12，关闭：0 )</span>
                                                         </td>
                                                     </tr>
 
@@ -330,7 +321,7 @@
                                                     </tr>
                                                     </thead>
                                                     <tr id="select_wan">
-                                                        <th width="35%">加速WAN口</th>
+                                                        <th width="35%">双WAN设置</th>
                                                         <td>
                                                             <select id="cloudxns_config_wan" name="cloudxns_config_wan" class="input_option"  >
                                                                 <option value="1">WAN1</option>
@@ -342,7 +333,7 @@
                                                  </table>
                                                  <div id="warn" style="display: none;margin-top: 20px;text-align: center;font-size: 20px;margin-bottom: 20px;"class="formfontdesc" ></div>
                                                 <div class="apply_gen">
-                                                    <button id="cmdBtn" class="button_gen" onclick="onSubmitCtrl();">提交</button>
+                                                    <input class="button_gen" type="button" onclick="onSubmitCtrl()" value="提交">
                                                 </div>
                                                 <div style="margin-left:5px;margin-top:10px;margin-bottom:10px"><img src="/images/New_ui/export/line_export.png"></div>
                                                 <div class="KoolshareBottom">
