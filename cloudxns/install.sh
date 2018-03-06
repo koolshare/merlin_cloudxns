@@ -1,7 +1,7 @@
 #!/bin/sh
 source /koolshare/scripts/base.sh
 MODULE=cloudxns
-VERSION="0.0.4"
+VERSION="0.0.5"
 cd /tmp
 if [[ ! -x /koolshare/bin/base64_encode ]]; then
     cp -f /tmp/serverchan/bin/base64_encode /koolshare/bin/base64_encode

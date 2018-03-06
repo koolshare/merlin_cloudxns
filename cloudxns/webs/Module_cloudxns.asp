@@ -77,6 +77,7 @@
             write_cloudxns_run_status();
             check_selected("cloudxns_auto_start", db_cloudxns_.cloudxns_auto_start);
             check_selected("cloudxns_refresh_time_check", db_cloudxns_.cloudxns_refresh_time_check);
+            check_selected("cloudxns_config_ddns", db_cloudxns_.cloudxns_config_ddns);
         }
         function onSubmitCtrl() {
             var _form = document.form;
@@ -126,6 +127,7 @@
                     $("#cloudxns_run_state").html(Base64.decode(db_cloudxns_['cloudxns_run_status']));
                     check_selected("cloudxns_auto_start", db_cloudxns_.cloudxns_auto_start);
                     check_selected("cloudxns_refresh_time", db_cloudxns_.cloudxns_refresh_time);
+                    check_selected("cloudxns_config_ddns", db_cloudxns_.cloudxns_config_ddns);
                 }
             });
         }
@@ -376,6 +378,16 @@
                                                                 <option value="2">小时</option>
                                                             </select> 刷新
                                                             <span style="padding-top:5px;margin-right:30px;margin-top:0px;float: right;">( 分钟范围：1-30，小时范围：1-12，关闭：0 )</span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th width="35%">DDNS显示</th>
+                                                        <td>
+                                                            <select id="cloudxns_config_ddns" name="cloudxns_config_ddns" class="input_option"  >
+                                                                <option value="2" selected="selected">不做更改</option>
+                                                                <option value="1">开启</option>
+                                                                <option value="0">关闭</option>
+                                                            </select>
                                                         </td>
                                                     </tr>
 

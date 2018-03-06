@@ -34,9 +34,9 @@ date
 arIpAdress() {
     #双WAN判断
     local wans_mode=$(nvram get wans_mode)
-    if [ "$cloudxns_config_wan" == "1" ] && [ "$wans_mode" == "lb" ]; then
+    if [ "${cloudxns_config_wan}" == "1" ] && [ "${wans_mode}" == "lb" ]; then
         inter=$(nvram get wan0_pppoe_ifname)
-    elif [ "$cloudxns_config_wan" == "2" ] && [ "$wans_mode" == "lb" ]; then
+    elif [ "${cloudxns_config_wan}" == "2" ] && [ "${wans_mode}" == "lb" ]; then
         inter=$(nvram get wan1_pppoe_ifname)
     else
         inter=$(nvram get wan0_pppoe_ifname)
@@ -45,7 +45,7 @@ arIpAdress() {
 }
 #将执行脚本写入crontab定时运行
 add_cloudxns_cru(){
-    if [ "$cloudxns_auto_start" == "1" ]; then
+    if [ "${cloudxns_auto_start}" == "1" ]; then
         [ ! -L /koolshare/init.d/S99cloudxns.sh ] && ln -sf /koolshare/scripts/cloudxns_config.sh /koolshare/init.d/S99cloudxns.sh
     fi
     if [ "${cloudxns_refresh_time}" == "0" ]; then
@@ -60,7 +60,28 @@ add_cloudxns_cru(){
         fi
     fi
 }
-
+cloudxns_ddns_stop(){
+    nvram set ddns_enable_x=0
+    nvram commit
+}
+cloudxns_ddns_start(){
+    # ddns setting
+    if [ "${cloudxns_enable}"x = "1"x ];then
+        # ddns setting
+        if [[ "${cloudxns_config_ddns}" == "1" ]] && [[ "${cloudxns_config_domain}" != "" ]]; then
+            nvram set ddns_enable_x=1
+            nvram set ddns_hostname_x=${cloudxns_config_domain}
+            ddns_custom_updated 1
+            nvram commit
+        elif [[ "${cloudxns_config_ddns}" == "2" ]]; then
+            echo "ddns no setting"
+        else
+            cloudxns_ddns_stop
+        fi
+    else
+        cloudxns_ddns_stop
+    fi
+}
 #停止服务
 stop_cloudxns(){
     #停掉cru里的任务
@@ -89,25 +110,28 @@ cloudxns_update(){
     POST=$(curl $(if [ -n "$OUT" ]; then echo "--interface $OUT"; fi) -k -s $URL -X POST -d $JSON -H "API-KEY: $API_KEY" -H "API-REQUEST-DATE: $NOWTIME" -H "API-HMAC: $HMAC" -H 'Content-Type: application/json')
     if (echo ${POST} |grep -q "success");then
         dbus set cloudxns_run_status="`echo 更新成功|base64_encode`"
+        cloudxns_ddns_start
     else
         dbus set cloudxns_run_status="`echo 更新失败:${POST}|base64_encode`"
+        cloudxns_ddns_stop
     fi
 }
 # ====================================主逻辑====================================
 
-case $ACTION in
+case ${ACTION} in
 start)
     #此处为开机自启动设计
-    if [ "$cloudxns_enable" == "1" ];then
+    if [ "${cloudxns_enable}" == "1" ];then
         add_cloudxns_cru
         cloudxns_update
     fi
     ;;
 stop | kill )
+    cloudxns_ddns_stop
     stop_cloudxns
     ;;
 restart)
-    if [ "$cloudxns_enable" == "1" ];then
+    if [ "${cloudxns_enable}" == "1" ];then
         stop_cloudxns
         add_cloudxns_cru
         cloudxns_update
